@@ -1,0 +1,63 @@
+const {test,expect} = require('@playwright/test');
+test('dummy test',async ({page})=>{
+    await page.goto('https://rahulshettyacademy.com/client');
+    await expect(page).toHaveTitle("Let's Shop");
+    await page.locator('#userEmail').fill('anshika@gmail.com');
+    await page.locator('#userPassword').fill('Iamking@000');
+    await page.locator('[value="Login"]').click();
+    await page.waitForLoadState('networkidle');
+    const firstText = await page.locator('.card-body b').first().textContent();
+    console.log(firstText);
+    const allTexts = await page.locator('.card-body b').allTextContents();
+    console.log(allTexts);
+    const list_products = [...await page.locator('.card-body b').allTextContents()];
+    console.log(list_products);
+    const productname = 'ADIDAS ORIGINAL';
+    for (let i in list_products){
+        if (list_products[i] === productname){
+            await page.locator('.card-body').nth(i).locator('text= Add To Cart').click();
+            break;
+        }
+    }
+    await page.locator('[routerlink*="cart"]').locator('text=Cart').click();
+    await expect((page.locator('[class="cartSection"]')).locator(`text=${productname}`)).toBeVisible();
+    await page.locator('text=Checkout').click();
+    await page.locator('input.input.txt').nth(0).fill('123');
+    await page.locator('input.input.txt').nth(1).fill('anshika');
+    await page.locator('input.input.txt').nth(2).fill('rahulshettyacademy');
+    await expect(page.locator("input[class*='text-validated']").nth(1)).toHaveValue('anshika@gmail.com');
+    //await page.getByPlaceholder('Select Country').pressSequentially('i', 'n', 'd', {delay:200});
+    await page.getByPlaceholder('Select Country').type('ind', {delay:200});
+    await page.waitForTimeout(500); // Wait for dropdown to render
+    const allCountries = await page.locator('.ta-item').allTextContents();
+    console.log('All countries from dropdown:', allCountries);
+    
+    for(let i in allCountries){
+        if(allCountries[i] === ' India'){
+            await page.locator('.ta-item').nth(i).click();
+            console.log('Selected country:', allCountries[i]);
+            break;
+        }
+    }
+
+    await page.getByText('Place Order ').click();
+    await expect(page.locator('.hero-primary')).toHaveText(' Thankyou for the order. ');
+    const ordeId = (await page.locator("label[class='ng-star-inserted']").textContent()).replace(/\|/g, '').trim();
+    console.log('Order ID:', ordeId);
+    await page.getByRole('button', { name: 'ORDERS' }).click();
+    await expect(page).toHaveURL(/.*myorders/);
+    const rows = page.locator('tbody tr');
+    const rowCount = await rows.count();
+
+    for (let i = 0; i < rowCount; i++) {
+        const ordervalue = (await rows.nth(i).locator('th').textContent()).trim();
+        console.log('Order value:', ordervalue);
+        if (ordervalue === ordeId) {
+            console.log('Order ID found in row:', ordervalue);
+            await rows.nth(i).getByRole('button', { name: 'View' }).click();
+            break;
+        }
+    }
+    await page.pause();
+    
+})

@@ -1,0 +1,28 @@
+const {test, expect} = require('@playwright/test');
+
+test('calender test', async ({page}) => {
+    const month = '01';
+    const date = '24';
+    const year = '1996';
+
+    await page.goto('https://rahulshettyacademy.com/seleniumPractise/#/offers');
+    await page.locator('.react-date-picker__calendar-button').click();
+
+    // click label twice → decade view
+    await page.locator('.react-calendar__navigation__label').click();
+    await page.locator('.react-calendar__navigation__label').click();
+
+    // select year → goes to year view
+    await page.locator('.react-calendar__decade-view__years__year').nth(Number(year) - 1990).click();
+    
+    // select month → goes to month view
+    await page.locator('.react-calendar__year-view__months__month')
+        .nth(Number(month) - 1).click();
+
+    // select date
+    await page.locator(`//abbr[text()='${date}']`).click();
+
+    // // verify selected date
+    // const selectedDate = await page.locator('.react-date-picker__inputGroup__input').nth(0).inputValue();
+    // expect(selectedDate).toBe(`${month}/${date}/${year}`);
+})

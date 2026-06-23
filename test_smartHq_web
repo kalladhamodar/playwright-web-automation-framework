@@ -1,0 +1,111 @@
+const { test , expect} = require('@playwright/test');
+
+test('uibasics',async ({browser,page})=>{
+
+    //Playwright code goes here
+    
+    //browser and page are coming from the test function parameters, 
+    // we don't need to create a new context and page, we can directly use them.
+
+    //chrome -- plugin
+// Ikkada Page icha kada global page object use cheyyali, 
+// so we can directly use page.goto without creating a new context and page.
+
+    // const context = await browser.newContext({
+    //     //chrome extension
+    //     //https://playwright.dev/docs/chrome-extensions
+    //     //
+    //     })
+    // const page = await context.newPage();
+
+    await page.goto('https://service-fld.dashboard.smarthqpro.com/signin');
+    //await expect(page).toHaveTitle('signin');
+
+    //Wrong Logins
+    await page.locator('#email').fill('dhamodarkallatest36@gmail.com');
+    await page.locator('#password').fill('Dhamodar@236');
+    await page.locator("[type='submit']").click();
+    await page.locator('.alert').textContent().then(text => console.log(text));
+    await expect(page.locator('.alert')).toHaveText('Invalid credentials');
+    await page.locator('#email').fill('');
+    await page.locator('#email').fill('dhamodartest36@gmail.com');
+
+    //Cant test recaptcha, because of security reasons, 
+    // but we can test the checkbox click and check if it is checked or not
+    // await page.locator(".recaptcha-checkbox-checkmark").click();
+    // await expect(page.locator(".recaptcha-checkbox-checkmark")).toBeChecked();
+    
+    await page.locator("[type='submit']").click();
+    //await page.locator('[class*="ljBiEq__contentBox"]').first().textContent().then(text=> console.log(text));
+    //Reason: Line 31 తర్వాత submit click చేశాక, page navigate అవ్వడానికి time పడుతుంది. Line 32 లేకుండా directly line 33 execute అయితే — page still loading లో ఉంటుంది, ljBiEq__contentBox elements DOM లో లేవు, so allTextContents() empty array [] return చేస్తుంది.
+    //Line 32 (first().textContent()) ఎందుకు help చేస్తుంది?
+    // //textContent() internally element visible అయ్యే వరకు wait చేస్తుంది (auto-wait)
+    // //దాని వల్ల page load అవుతుంది, తర్వాత line 33 execute అవుతుంది
+    //or
+    await page.waitForLoadState('networkidle'); //networkidle అంటే page లో ఎలాంటి network request లేవు, 
+    // అంటే page load అయిపోయింది
+
+   // await page.locator('[class*="ljBiEq__contentBox"]').allTextContents().then(text=> console.log(text));
+
+   //Dropdwon click చేయడానికి, dropdown element locate చేసి click చేయాలి,
+//    await page.getByText('Usage Report').click();
+//    await page.locator('[class*="filters__input"]').filter({ hasText: 'Week' }).click();
+//    await page.locator('[class*="RadioButton"]').filter({ hasText: 'Year' }).click();
+//    page.pause();
+   //Radio button click చేయడానికి, radio button element locate చేసి click చేయాలి,
+    //   await page.locator("[type='button']").filter({ hasText: 'Activate Bundle Pack' }).click();
+    //   await page.locator('[class*="radios__control"]').filter({ hasText: 'No' }).locator('[data-testid="radio"]').click();
+    //   await expect(page.locator('[class*="radios__control"]').filter({ hasText: 'No' }).locator('[class*="radioSelected"]')).toBeVisible();
+    //   page.pause();
+
+    //checkbox click చేయడానికి, checkbox element locate చేసి click చేయాలి,
+    // await page.locator(".dropdown").first().click();
+    // await page.locator('[class*="tech_actions__menu__item"]').filter({ hasText: 'Edit details' }).click();
+    // await page.locator("[name='allocateLicense']").check();
+    // await expect(page.locator("[name='allocateLicense']")).toBeChecked();
+    // await page.locator("[name='allocateLicense']").uncheck();
+    // //await expect(page.locator("[name='allocateLicense']")).not.toBeChecked();
+    // await expect(page.locator("[name='allocateLicense']")).not.toBeChecked();
+
+
+
+    
+    // chatbot bubble click చేసినప్పుడు same page లో open అవుతుంది
+    // await page.locator("[class*='bubble_wrapper__bubble']").click();
+    // await page.waitForLoadState('networkidle');
+
+
+    //popupwindow handling or child window handling
+    await page.locator("[class*='wrapper__title__payment']").filter({ hasText: 'Manage Payment Methods' }).click();
+    await page.waitForLoadState('networkidle');
+    // First verify the locator exists
+    //await page.getByText('Manage on Stripe').waitFor();
+    
+    const [childPage] = await Promise.all([
+        page.context().waitForEvent('page'),
+        page.getByText('Manage on Stripe').first().click()
+    ])
+    await childPage.waitForLoadState();
+    console.log('Child page URL:', childPage.url());
+    await childPage.locator("[class*='Badge-text']").textContent().then(text => console.log(text));
+    await expect(childPage.locator("[class*='Badge-text']")).toHaveText('Test mode');
+    await page.pause();
+
+
+
+
+    
+
+
+
+    
+    
+
+
+})
+
+
+// test('child window handling',async ({browser})=>{
+
+
+// })
